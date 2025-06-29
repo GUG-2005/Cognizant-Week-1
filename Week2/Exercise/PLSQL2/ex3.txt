@@ -1,0 +1,39 @@
+SET SERVEROUTPUT ON;
+
+CREATE OR REPLACE PROCEDURE TransferFunds (
+    p_source_account   IN NUMBER,
+    p_target_account   IN NUMBER,
+    p_amount           IN NUMBER
+) IS
+    v_source_balance   NUMBER;
+    v_target_balance   NUMBER;
+BEGIN
+    SELECT Balance INTO v_source_balance
+    FROM Accounts
+    WHERE AccountID = p_source_account;
+
+    IF v_source_balance < p_amount THEN
+        DBMS_OUTPUT.PUT_LINE('Transfer failed: insufficient balance in Account ' || p_source_account);
+        RETURN;
+    END IF;
+
+    UPDATE Accounts
+    SET Balance = Balance - p_amount
+    WHERE AccountID = p_source_account;
+
+    UPDATE Accounts
+    SET Balance = Balance + p_amount
+    WHERE AccountID = p_target_account;
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Transfer of ₹' || p_amount || ' from Account ' || p_source_account || 
+                         ' to Account ' || p_target_account || ' successful.');
+END;
+/
+
+
+BEGIN
+    TransferFunds(1, 2, 500);  -- Transfer ₹500 from AccountID 1 to 2
+END;
+/

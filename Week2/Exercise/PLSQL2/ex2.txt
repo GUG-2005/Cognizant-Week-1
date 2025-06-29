@@ -1,0 +1,40 @@
+SET SERVEROUTPUT ON;
+
+CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus (
+    p_department IN VARCHAR2,
+    p_bonus_pct IN NUMBER
+) IS
+    CURSOR emp_cur IS
+        SELECT EmployeeID, Name, Salary
+        FROM Employees
+        WHERE Department = p_department;
+
+    v_old_salary NUMBER;
+    v_new_salary NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('-- Bonus Update for Department: ' || p_department || ' --');
+    DBMS_OUTPUT.PUT_LINE('EmpID | Name             | Old Salary | New Salary');
+    FOR rec IN emp_cur LOOP
+        v_old_salary := rec.Salary;
+        v_new_salary := rec.Salary + (rec.Salary * p_bonus_pct / 100);
+
+        UPDATE Employees
+        SET Salary = v_new_salary
+        WHERE EmployeeID = rec.EmployeeID;
+
+        DBMS_OUTPUT.PUT_LINE(
+            LPAD(rec.EmployeeID, 5) || ' | ' ||
+            RPAD(rec.Name, 16) || ' | ' ||
+            LPAD(TO_CHAR(v_old_salary, '99999.99'), 10) || ' | ' ||
+            LPAD(TO_CHAR(v_new_salary, '99999.99'), 10)
+        );
+    END LOOP;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('-- Bonus successfully applied. --');
+END;
+/
+
+BEGIN
+    UpdateEmployeeBonus ('IT', 10);
+END;

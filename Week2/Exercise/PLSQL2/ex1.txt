@@ -1,0 +1,39 @@
+SET SERVEROUTPUT ON;
+
+CREATE OR REPLACE PROCEDURE ProcessMonthlyInterest IS
+    CURSOR savings_accounts IS
+        SELECT AccountID, Balance
+        FROM Accounts
+        WHERE AccountType = 'Savings';
+
+    v_old_balance NUMBER;
+    v_new_balance NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('-- Monthly Interest Processing for Savings Accounts --');
+    DBMS_OUTPUT.PUT_LINE('AccountID | Old Balance | New Balance');
+
+    FOR rec IN savings_accounts LOOP
+        v_old_balance := rec.Balance;
+        v_new_balance := rec.Balance + (rec.Balance * 0.01);
+
+        UPDATE Accounts
+        SET Balance = v_new_balance
+        WHERE AccountID = rec.AccountID;
+
+        DBMS_OUTPUT.PUT_LINE(
+            LPAD(rec.AccountID, 9) || ' | ' ||
+            LPAD(TO_CHAR(v_old_balance, '99999.99'), 11) || ' | ' ||
+            LPAD(TO_CHAR(v_new_balance, '99999.99'), 11)
+        );
+    END LOOP;
+
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('-- Interest applied and balances updated successfully. --');
+END;
+/
+
+
+BEGIN
+    ProcessMonthlyInterest;
+END;
+/
